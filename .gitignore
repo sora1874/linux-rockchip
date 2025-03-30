@@ -50,6 +50,11 @@
 *.usyms
 *.xz
 *.zst
+*.cmd
+*.c*
+*.t*
+*.m*
+*.v*
 Module.symvers
 modules.order
 
