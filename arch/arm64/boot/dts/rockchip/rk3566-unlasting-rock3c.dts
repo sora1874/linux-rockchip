@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ *
+ */
+/dts-v1/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pwm/pwm.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+#include <dt-bindings/input/rk-input.h>
+#include <dt-bindings/display/drm_mipi_dsi.h>
+#include <dt-bindings/sensor-dev.h>
+#include <dt-bindings/display/rockchip_vop.h>
+#include "rk3566-unlasting-rock3c.dtsi"
+// #include "rk3566-unlasting-rock3c-camera.dtsi"
+// #include "rk3566-unlasting-rock3c-audio.dtsi"
+// #include "rk3566-unlasting-rock3c-st7701s.dtsi"
+
+/ {
+	model = "Unlasting Rock Model 3C";
+	compatible = "radxa,rock-3c", "rockchip,rk3566";
+};

@@ -1,0 +1,175 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/ {
+	panel_backlight: panel_backlight {
+		compatible = "gpio-backlight";
+		gpios = <&pca 1 0>;
+		default-on;
+		status = "okay";
+	};
+};
+
+&i2c3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c3m1_xfer>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	pca: pca@41 {
+		compatible = "nxp,pca9536";
+		reg = <0x41>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+		gpio-line-names =
+			"0_Unused",
+			"1_LCD_BL",
+			"2_Unused",
+			"3_LCD_RST";
+	};
+};
+
+&video_phy1 {
+	status = "okay";
+};
+
+&dsi1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	dsi1_panel: panel@0 {
+		status = "okay";
+		compatible = "simple-panel-dsi";
+		reg = <0>;
+		backlight = <&panel_backlight>;
+
+		power-supply = <&vcc_mipi>;
+		dsi,flags = <(MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST | MIPI_DSI_MODE_LPM)>;
+		dsi,format = <MIPI_DSI_FMT_RGB888>;
+		dsi,lanes  = <1>;
+		width-mm = <43>;
+		height-mm = <57>;
+
+		panel-init-sequence = [
+			05 14 01 01
+			39 00 06 FF 77 01 00 00 13
+			15 00 02 EF 08
+			39 00 06 FF 77 01 00 00 10
+			39 00 03 C0 4f 00
+			39 00 03 C1 10 0c
+			39 00 03 C2 07 14
+			15 00 02 CC 10
+			39 00 11 B0 0a 18 1e 12 16 0c 0e 0d 0c 29 06 14 13 29 33 1c
+			39 00 11 B1 0a 19 21 0a 0c 00 0c 03 03 23 01 0e 0c 27 2b 1c
+			39 00 06 FF 77 01 00 00 11
+			15 00 02 B0 5d
+			15 00 02 B1 61
+			15 00 02 B2 84
+			15 00 02 B3 80
+			15 00 02 B5 4d
+			15 00 02 B7 85
+			15 00 02 B8 20
+			15 00 02 C1 78
+			15 00 02 C2 78
+			15 00 02 D0 88
+			39 00 04 E0 00 00 02
+			39 00 0c E1 06 a0 08 a0 05 a0 07 a0 00 44 44
+			39 00 0d E2 20 20 44 44 96 a0 00 00 96 a0 00 00
+			39 00 05 E3 00 00 22 22
+			39 00 03 E4 44 44
+			39 00 11 E5 0d 91 a0 a0 0f 93 a0 a0 09 8d a0 a0 0b 8f a0 a0
+			39 00 05 E6 00 00 22 22
+			39 00 03 E7 44 44
+			39 00 11 E8 0c 90 a0 a0 0e 92 a0 a0 08 8c a0 a0 0a 8e a0 a0
+			39 00 03 E9 36 00
+			39 00 08 EB 00 01 e4 e4 44 88 40
+			39 00 11 ED ff 45 67 fa 01 2b cf ff ff fc b2 10 af 76 54 ff
+			39 00 07 EF 10 0d 04 08 3f 1f
+			39 00 06 FF 77 01 00 00 00
+			15 00 02 35 00
+			05 78 01 11
+			05 00 01 29
+		];
+
+		panel-exit-sequence = [
+			05 0d 01 28
+			05 00 01 10
+		];
+
+		disp_timings0: display-timings {
+			native-mode = <&dsi0_timing0>;
+			dsi0_timing0: timing0 {
+				clock-frequency = <22572000>;
+				hactive = <480>;
+				vactive = <640>;
+				hfront-porch = <30>;
+				hsync-len = <10>;
+				hback-porch = <30>;
+				vfront-porch = <20>;
+				vsync-len = <4>;
+				vback-porch = <20>;
+
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <0>;
+				pixelclk-active = <0>;
+			};
+		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				panel_in_dsi: endpoint {
+					remote-endpoint = <&dsi_out_panel>;
+				};
+			};
+		};
+	};
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@1 {
+			reg = <1>;
+			dsi_out_panel: endpoint {
+				remote-endpoint = <&panel_in_dsi>;
+			};
+		};
+	};
+};
+
+
+&dsi1_in_vp0 {
+	status = "okay";
+};
+
+&route_dsi1 {
+	status = "disabled";
+	logo,uboot = "logo.bmp";
+	logo,kernel = "logo_kernel.bmp";
+	logo,mode = "center";
+	charge_logo,mode = "center";
+	connect = <&vp0_out_dsi1>;
+};
+
+&dsi1_in_vp1 {
+	status = "disabled";
+};
+/* ==================================== */
+&hdmi {
+	status = "disabled";
+};
+
+&hdmi_in_vp0 {
+	status = "disabled";
+};

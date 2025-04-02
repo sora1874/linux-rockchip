@@ -1,0 +1,121 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ *
+ */
+/ {
+	max98357a_codec: max98357a-codec {
+		compatible = "maxim,max98357a";
+		pinctrl-names = "default";
+		pinctrl-0 = <&sdmode_en>;
+		sdmode-gpios = <&gpio3 RK_PB2 GPIO_ACTIVE_HIGH>;
+		sdmode-delay = <2>;
+		#sound-dai-cells = <0>;
+		status = "disabled";
+	};
+
+	max98357a_machine: max98357a-machine {
+		status = "disabled";
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,name = "max98357a";
+		simple-audio-card,mclk-fs = <128>;
+		// simple-audio-card,bitclock-master = <&master>;
+		// simple-audio-card,frame-master = <&master>;
+		simple-audio-card,cpu {
+			sound-dai = <&i2s3_2ch>;
+		};
+		master: simple-audio-card,codec {
+			sound-dai = <&max98357a_codec>;
+		};
+	};
+	/* bluetooth hfp */
+	bt_sco_codec: bt-sco-codec {
+		compatible = "linux,bt-sco";
+		#sound-dai-cells = <0>;
+	};
+
+	bt_machine: bt-sco-machine {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "bt-sco";
+		simple-audio-card,format = "dsp_b";
+		simple-audio-card,bitclock-inversion;
+		simple-audio-card,frame-master = <&bt_cpu>;
+		simple-audio-card,bitclock-master = <&bt_cpu>;
+		simple-audio-card,mclk-fs = <64>;
+		status = "disabled";
+
+		bt_cpu: simple-audio-card,cpu {
+			sound-dai = <&i2s2_2ch>;
+			dai-tdm-slot-num = <2>;
+			dai-tdm-slot-width = <16>;
+		};
+
+		bt_codec: simple-audio-card,codec {
+			sound-dai = <&bt_sco_codec>;
+		};
+	};
+
+	wm8978_machine: wm8978-machine {
+		status = "okay";
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,name = "audio,wm8978";
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,cpu {
+			sound-dai = <&i2s3_2ch>;
+		};
+		codec_master: simple-audio-card,codec {
+			sound-dai = <&wm8978>;
+		};
+	};
+
+};
+
+&i2c4 {
+	pinctrl-0 = <&i2c4m0_xfer>;
+	pinctrl-names = "default";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <400000>;
+
+	status = "okay";
+	wm8978: codec@1a {
+		compatible = "wlf,wm8978";
+		#sound-dai-cells = <0>;
+		reg = <0x1a>;
+		status = "okay";
+		clocks = <&cru I2S3_MCLKOUT>;
+		clock-names = "mclk";
+		assigned-clocks = <&cru I2S3_MCLKOUT>, <&cru I2S3_MCLK_IOE>;
+		assigned-clock-rates = <12288000>;
+		assigned-clock-parents = <&cru I2S3_MCLKOUT_TX>, <&cru I2S3_MCLKOUT>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2s3m0_mclk>;
+	};
+};
+
+&pinctrl {
+	max98357a {
+		sdmode_en: sdmode-en {
+			rockchip,pins = <3 RK_PB2 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+	};
+};
+
+&i2s3_2ch {
+	status = "okay";
+};
+
+&hdmi_sound {
+	status = "disabled";
+};
+
+&rk809_sound {
+	status = "disabled";
+};
+
+&i2s2_2ch {
+	rockchip,trcm-sync-tx-only;
+	status = "okay";
+};
