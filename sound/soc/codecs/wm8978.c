@@ -24,6 +24,7 @@
 #include <sound/initval.h>
 #include <sound/tlv.h>
 #include <asm/div64.h>
+#include <linux/clk.h>
 
 #include "wm8978.h"
 
@@ -101,6 +102,7 @@ struct wm8978_priv {
 	unsigned int f_opclk;
 	int mclk_idx;
 	enum wm8978_sysclk_src sysclk;
+	struct clk *mclk;
 };
 
 static const char *wm8978_companding[] = {"Off", "NC", "u-law", "A-law"};
@@ -840,8 +842,8 @@ static int wm8978_mute(struct snd_soc_dai *dai, int mute, int direction)
 {
 	struct snd_soc_component *component = dai->component;
 
-	dev_dbg(component->dev, "%s: %d\n", __func__, mute);
 
+	dev_dbg(component->dev, "%s: %d\n", __func__, mute);
 	if (mute)
 		snd_soc_component_update_bits(component, WM8978_DAC_CONTROL, 0x40, 0x40);
 	else
@@ -925,6 +927,7 @@ static int wm8978_suspend(struct snd_soc_component *component)
 {
 	struct wm8978_priv *wm8978 = snd_soc_component_get_drvdata(component);
 
+	dev_dbg(component->dev, "%s\n", __func__);
 	snd_soc_component_force_bias_level(component, SND_SOC_BIAS_OFF);
 	/* Also switch PLL off */
 	snd_soc_component_write(component, WM8978_POWER_MANAGEMENT_1, 0);
@@ -973,6 +976,13 @@ static int wm8978_probe(struct snd_soc_component *component)
 {
 	struct wm8978_priv *wm8978 = snd_soc_component_get_drvdata(component);
 	int i;
+	int ret = 0;
+
+	ret = clk_prepare_enable(wm8978->mclk);
+	if (ret) {
+		dev_err(component->dev, "unable to enable mclk\n");
+		return ret;
+	}
 
 	/*
 	 * Set default system clock to PLL, it is more precise, this is also the
@@ -991,8 +1001,17 @@ static int wm8978_probe(struct snd_soc_component *component)
 	return 0;
 }
 
+static void wm8978_remove(struct snd_soc_component *component)
+{
+	struct wm8978_priv *wm8978 = snd_soc_component_get_drvdata(component);
+
+	clk_disable_unprepare(wm8978->mclk);
+	wm8978_set_bias_level(component, SND_SOC_BIAS_OFF);
+}
+
 static const struct snd_soc_component_driver soc_component_dev_wm8978 = {
 	.probe			= wm8978_probe,
+	.remove			= wm8978_remove,
 	.suspend		= wm8978_suspend,
 	.resume			= wm8978_resume,
 	.set_bias_level		= wm8978_set_bias_level,
@@ -1038,6 +1057,15 @@ static int wm8978_i2c_probe(struct i2c_client *i2c)
 
 	i2c_set_clientdata(i2c, wm8978);
 
+	wm8978->mclk = NULL;
+	wm8978->mclk = devm_clk_get(&i2c->dev, "mclk");
+	if (IS_ERR(wm8978->mclk)) {
+		dev_err(&i2c->dev, "unable to get mclk\n");
+		return PTR_ERR(wm8978->mclk);
+	}
+	if (!wm8978->mclk)
+		dev_warn(&i2c->dev, "assuming static mclk\n");
+
 	/* Reset the codec */
 	ret = regmap_write(wm8978->regmap, WM8978_RESET, 0);
 	if (ret != 0) {
@@ -1053,6 +1081,14 @@ static int wm8978_i2c_probe(struct i2c_client *i2c)
 	}
 
 	return 0;
+}
+
+static void wm8978_i2c_remove(struct i2c_client *client)
+{
+	struct wm8978_priv *wm8978 = i2c_get_clientdata(client);
+
+	if (wm8978->mclk != NULL)
+		clk_disable_unprepare(wm8978->mclk);
 }
 
 static const struct i2c_device_id wm8978_i2c_id[] = {
@@ -1073,6 +1109,7 @@ static struct i2c_driver wm8978_i2c_driver = {
 		.of_match_table = wm8978_of_match,
 	},
 	.probe_new = wm8978_i2c_probe,
+	.remove = wm8978_i2c_remove,
 	.id_table = wm8978_i2c_id,
 };
 
