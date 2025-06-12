@@ -13,9 +13,10 @@
 #include <dt-bindings/sensor-dev.h>
 #include <dt-bindings/display/rockchip_vop.h>
 #include "rk3566-unlasting-rock3c.dtsi"
-// #include "rk3566-unlasting-rock3c-camera.dtsi"
+#include "rk3566-unlasting-rock3c-camera.dtsi"
 // #include "rk3566-unlasting-rock3c-audio.dtsi"
-// #include "rk3566-unlasting-rock3c-st7701s.dtsi"
+#include "rk3566-unlasting-rock3c-st7701s.dtsi"
+// #include "rk3566-unlasting-rock3c-rgb-test.dtsi"
 
 / {
 	model = "Unlasting Rock Model 3C";

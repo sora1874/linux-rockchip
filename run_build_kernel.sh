@@ -11,7 +11,8 @@ function build_func {
 		make disclean
 	else
 		echo "============ start build ============"
-		make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- ${DEFAULE_CONFIG}
+		#make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- ${DEFAULE_CONFIG}
+		make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- menuconfig
 		make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- --jobs="$(nproc)" all
 	fi
 }

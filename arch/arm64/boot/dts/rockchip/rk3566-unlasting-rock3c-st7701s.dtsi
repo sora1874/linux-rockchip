@@ -154,7 +154,7 @@
 };
 
 &route_dsi1 {
-	status = "disabled";
+	status = "okay";
 	logo,uboot = "logo.bmp";
 	logo,kernel = "logo_kernel.bmp";
 	logo,mode = "center";
