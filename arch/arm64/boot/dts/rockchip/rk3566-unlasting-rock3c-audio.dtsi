@@ -4,6 +4,13 @@
  *
  */
 / {
+	/* inmp441 */
+	pdmics: dummy-codec {
+		status = "okay";
+		compatible = "rockchip,dummy-codec";
+		#sound-dai-cells = <0>;
+	};
+
 	max98357a_codec: max98357a-codec {
 		compatible = "maxim,max98357a";
 		pinctrl-names = "default";
@@ -15,18 +22,21 @@
 	};
 
 	max98357a_machine: max98357a-machine {
-		status = "disabled";
+		status = "okay";
 		compatible = "simple-audio-card";
 		simple-audio-card,format = "i2s";
-		simple-audio-card,name = "max98357a";
+		simple-audio-card,name = "dummy-card";
 		simple-audio-card,mclk-fs = <128>;
-		// simple-audio-card,bitclock-master = <&master>;
-		// simple-audio-card,frame-master = <&master>;
 		simple-audio-card,cpu {
 			sound-dai = <&i2s3_2ch>;
 		};
+		/*
 		master: simple-audio-card,codec {
 			sound-dai = <&max98357a_codec>;
+		};
+		*/
+		master: simple-audio-card,codec {
+			sound-dai = <&pdmics>;
 		};
 	};
 	/* bluetooth hfp */
@@ -57,10 +67,10 @@
 	};
 
 	wm8978_machine: wm8978-machine {
-		status = "okay";
+		status = "disabled";
 		compatible = "simple-audio-card";
 		simple-audio-card,format = "i2s";
-		simple-audio-card,name = "audio,wm8978";
+		simple-audio-card,name = "card,wm8978";
 		simple-audio-card,mclk-fs = <256>;
 		simple-audio-card,cpu {
 			sound-dai = <&i2s3_2ch>;
@@ -69,7 +79,6 @@
 			sound-dai = <&wm8978>;
 		};
 	};
-
 };
 
 &i2c4 {
@@ -84,7 +93,7 @@
 		compatible = "wlf,wm8978";
 		#sound-dai-cells = <0>;
 		reg = <0x1a>;
-		status = "okay";
+		status = "disabled";
 		clocks = <&cru I2S3_MCLKOUT>;
 		clock-names = "mclk";
 		assigned-clocks = <&cru I2S3_MCLKOUT>, <&cru I2S3_MCLK_IOE>;
