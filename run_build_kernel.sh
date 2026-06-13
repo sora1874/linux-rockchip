@@ -8,7 +8,7 @@ function build_func {
 		echo "============ clean source code ============"
 		# make mrproper
 		make clean
-		make disclean
+		make distclean
 	else
 		echo "============ start build ============"
 		#make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- ${DEFAULE_CONFIG}
